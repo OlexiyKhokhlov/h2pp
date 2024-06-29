@@ -1,0 +1,5 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/H2ppTargets.cmake")
+
+check_required_components(h2pp)

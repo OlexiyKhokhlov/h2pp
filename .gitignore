@@ -1,0 +1,72 @@
+# Qt Creator
+*.pro.user
+*.pro.user.*
+*.txt.user
+*.txt.user.*
+
+# VS
+.vs/
+.vscode/
+
+# Eclipse
+.settings/
+.project
+.cproject
+/build/
+
+# idea
+.idea
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# cmake build directories
+/cmake-build*
+/build*/
+/install*/
+
+# macOS specific
+.DS_Store
+
+# EMacs/VIM lsp mode
+compile_commands.json
+.cache/
+
+# cmake user presets
+CMakeUserPresets.json
+
+# xcode generated projects
+xcode_gen
+
+# python bytecode cache
+__pycache__/

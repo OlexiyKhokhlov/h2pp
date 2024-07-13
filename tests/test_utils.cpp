@@ -47,14 +47,14 @@ BOOST_AUTO_TEST_CASE(Make_masks_for_uint64) {
   BOOST_CHECK_EQUAL(make_mask<value_type>(sizeof(value_type) * 8), std::numeric_limits<value_type>::max());
 }
 
-BOOST_AUTO_TEST_CASE(Сeil_order2_0) {
+BOOST_AUTO_TEST_CASE(Ceil_order2_0) {
   BOOST_CHECK_EQUAL(ceil_order2(0, 0), 0);
   BOOST_CHECK_EQUAL(ceil_order2(1, 0), 1);
   BOOST_CHECK_EQUAL(ceil_order2(2, 0), 2);
   BOOST_CHECK_EQUAL(ceil_order2(1000, 0), 1000);
 }
 
-BOOST_AUTO_TEST_CASE(Сeil_order2_1) {
+BOOST_AUTO_TEST_CASE(Ceil_order2_1) {
   BOOST_CHECK_EQUAL(ceil_order2(0, 1), 0);
   BOOST_CHECK_EQUAL(ceil_order2(1, 1), 2);
   BOOST_CHECK_EQUAL(ceil_order2(2, 1), 2);
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(Сeil_order2_1) {
   BOOST_CHECK_EQUAL(ceil_order2(1000, 1), 1000);
 }
 
-BOOST_AUTO_TEST_CASE(Сeil_order2_64) {
+BOOST_AUTO_TEST_CASE(Ceil_order2_64) {
   BOOST_CHECK_EQUAL(ceil_order2(0, 6), 0);
   BOOST_CHECK_EQUAL(ceil_order2(1, 6), 64);
   BOOST_CHECK_EQUAL(ceil_order2(2, 6), 64);
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(Сeil_order2_64) {
   BOOST_CHECK_EQUAL(ceil_order2(635, 6), 640);
 }
 
-BOOST_AUTO_TEST_CASE(Сeil_order2_4096) {
+BOOST_AUTO_TEST_CASE(Ceil_order2_4096) {
   BOOST_CHECK_EQUAL(ceil_order2(0, 12), 0);
   BOOST_CHECK_EQUAL(ceil_order2(1, 12), 4096);
   BOOST_CHECK_EQUAL(ceil_order2(2, 12), 4096);

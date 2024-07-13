@@ -70,7 +70,7 @@ public:
   std::size_t commit(std::span<const uint8_t> span) noexcept {
     auto to_copy = std::min(prepare().size_bytes(), span.size_bytes());
     memcpy(memory.get() + offset, span.data(), to_copy);
-    offset = span.size_bytes();
+    offset += to_copy;
     return to_copy;
   }
 
@@ -89,7 +89,7 @@ public:
    */
   void consume(std::size_t count) noexcept {
     count = std::min(offset, count);
-    if (count < offset) {
+    if (count != 0 && count < offset) {
       memmove(memory.get(), memory.get() + count, offset - count);
     }
     offset -= count;

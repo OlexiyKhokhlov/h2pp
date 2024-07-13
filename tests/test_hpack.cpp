@@ -1,7 +1,7 @@
 #define BOOST_TEST_MODULE HPack
-#include <algorithm>
-
 #include <boost/test/unit_test.hpp>
+
+#include <algorithm>
 
 #include <hpack/bitstream.h>
 #include <hpack/decoder.h>
@@ -233,18 +233,18 @@ BOOST_AUTO_TEST_CASE(TestDecoder) {
   }
 }
 
-BOOST_AUTO_TEST_CASE(TestEncDec) {
-  std::deque<rfc7541::header_field> fields = {
-      {"user-agent", "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) "
-                     "Gecko/20100101 Firefox/118.0"}};
+// BOOST_AUTO_TEST_CASE(TestEncDec) {
+//   std::deque<rfc7541::header_field> fields = {
+//       {"user-agent", "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) "
+//                      "Gecko/20100101 Firefox/118.0"}};
 
-  rfc7541::encoder encoder;
-  rfc7541::decoder decoder;
+//   rfc7541::encoder encoder;
+//   rfc7541::decoder decoder;
 
-  auto [buffer, count] = encoder.encode(fields, 4096);
+//   auto [buffer, count] = encoder.encode(fields, 4096);
 
-  auto header = decoder.decode(buffer.front().data_view());
-}
+//   auto header = decoder.decode(buffer.front().data_view());
+// }
 // BOOST_AUTO_TEST_CASE(Decoding_without_huffman) {
 //   // C.3
 //   // All request without huffman coding

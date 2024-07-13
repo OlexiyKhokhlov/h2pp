@@ -1,7 +1,10 @@
 project(h2pp_test)
 
-add_executable(${PROJECT_NAME} test_hpack.cpp)
+add_executable(${PROJECT_NAME}_utils test_utils.cpp)
+add_executable(${PROJECT_NAME}_hpack test_hpack.cpp)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES} H2PP::h2pp)
+target_link_libraries(${PROJECT_NAME}_utils PRIVATE Boost::unit_test_framework H2PP::h2pp)
+target_link_libraries(${PROJECT_NAME}_hpack PRIVATE Boost::unit_test_framework H2PP::h2pp)
 
-add_test(NAME ${PROJECT_NAME} COMMAND ./${PROJECT_NAME})
+add_test(NAME ${PROJECT_NAME}_utils COMMAND ./${PROJECT_NAME}_utils)
+add_test(NAME ${PROJECT_NAME}_hpack COMMAND ./${PROJECT_NAME}_hpack)

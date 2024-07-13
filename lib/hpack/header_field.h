@@ -25,6 +25,10 @@ class header_field {
 public:
   explicit header_field(index_type type = index_type::DEFAULT) : m_type(type) {}
 
+  header_field(const header_field &) = default;
+  header_field &operator=(const header_field &) = default;
+  header_field(header_field &&) = default;
+  header_field &operator=(header_field &&) = default;
   ~header_field();
 
   header_field(const std::span<const uint8_t> name, const std::span<const uint8_t> value,
@@ -33,6 +37,9 @@ public:
 
   header_field(std::string_view name, std::string_view value, index_type type = index_type::DEFAULT)
       : m_name(name.begin(), name.end()), m_value(value.begin(), value.end()), m_type(type) {}
+
+  header_field(std::vector<uint8_t> &&name, std::vector<uint8_t> &&value, index_type type = index_type::DEFAULT)
+      : m_name(std::move(name)), m_value(std::move(value)), m_type(type) {}
 
   index_type type() const { return m_type; }
 

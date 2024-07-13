@@ -57,20 +57,17 @@ void decoder::literal_without_index_impl(ibitstream &stream, header &h, index_ty
   std::size_t index = 0;
   stream >> index;
 
-  header_field field(type);
+  std::vector<uint8_t> name;
   if (index == 0) {
-    std::vector<uint8_t> name;
     stream >> name;
-    field.set_name(std::move(name));
   } else {
-    const auto [name, value] = table.at(index);
-    std::vector<uint8_t> name_val(name.begin(), name.end());
-    field.set_name(std::move(name_val));
+    const auto [name_view, value_view] = table.at(index);
+    std::ignore = value_view;
+    name = decltype(name)(name.begin(), name.end());
   }
   std::vector<uint8_t> value;
   stream >> value;
-  field.set_value(std::move(value));
-  h.emplace_back(field);
+  h.emplace_back(std::move(name), std::move(value), type);
 }
 
 void decoder::literal_incremental_index_cmd(ibitstream &stream, header &h) {

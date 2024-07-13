@@ -13,7 +13,7 @@ bool operator!=(std::span<const char> lhs, std::span<const uint8_t> rhs) {
   return 0 != memcmp(lhs.data(), rhs.data(), rhs.size_bytes());
 }
 
-constexpr std::span<const char> operator""_sp(const char *str, std::size_t len) { return {str, len}; }
+consteval std::span<const char> operator""_sp(const char *str, std::size_t len) { return {str, len}; }
 
 struct static_field {
   std::span<const char> name;

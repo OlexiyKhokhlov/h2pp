@@ -148,7 +148,7 @@ public:
    * @brief min_size
    * @return minimal bytes count that can be used for from_buffer call.
    */
-  [[nodiscard]] constexpr std::size_t static min_size() { return sizeof(struct header); }
+  [[nodiscard]] consteval std::size_t static min_size() { return sizeof(struct header); }
 
   /**
    * @brief is_complete

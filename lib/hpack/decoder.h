@@ -1,5 +1,5 @@
 #pragma once
-
+;
 #include <cstdint>
 #include <span>
 
@@ -14,13 +14,16 @@ class decoder {
 public:
   decoder() = default;
   decoder(const decoder &) = delete;
+  decoder &operator=(const decoder &) = delete;
   decoder(decoder &&) = default;
-  ~decoder() = default;
+  decoder &operator=(decoder &&) = default;
+  ~decoder();
 
   header decode(std::span<const uint8_t> encoded_data);
 
 private:
-  decoder_table table{4096};
+  constexpr static inline size_t DefaultTableSize = 4096;
+  decoder_table table{DefaultTableSize};
 
   void index_cmd(ibitstream &stream, header &h);
   void change_table_size_cmd(ibitstream &stream, header &h);

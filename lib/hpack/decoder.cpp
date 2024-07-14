@@ -9,6 +9,8 @@ namespace rfc7541 {
 
 using namespace constants;
 
+decoder::~decoder() = default;
+
 header decoder::decode(std::span<const uint8_t> data) {
   using cmd_ptr = void (decoder::*)(ibitstream &stream, header &);
   static cmd_ptr commands[] = {
@@ -63,7 +65,7 @@ void decoder::literal_without_index_impl(ibitstream &stream, header &h, index_ty
   } else {
     const auto [name_view, value_view] = table.at(index);
     std::ignore = value_view;
-    name = decltype(name)(name.begin(), name.end());
+    name = decltype(name)(name_view.begin(), name_view.end());
   }
   std::vector<uint8_t> value;
   stream >> value;

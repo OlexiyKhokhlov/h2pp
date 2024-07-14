@@ -13,7 +13,9 @@ public:
 
   hpack_table() = delete;
   hpack_table(const dynamic_table &) = delete;
+  hpack_table &operator=(const hpack_table &) = delete;
   hpack_table(hpack_table &&) = default;
+  hpack_table &operator=(hpack_table &&) = default;
   ~hpack_table() = default;
 
   std::pair<std::span<const uint8_t>, std::span<const uint8_t>> at(std::size_t i) const {

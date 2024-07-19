@@ -11,38 +11,56 @@ std::string error_category_impl::message(int ev) const {
 }
 
 char const *error_category_impl::message(int ev, char *buffer, std::size_t len) const noexcept {
+  const char *str_error = nullptr;
   switch (static_cast<error_code>(ev)) {
   case error_code::IS_OK:
-    return "No error";
+    str_error = "No error";
+    break;
   case error_code::PROTOCOL_ERROR:
-    return "Protocol error";
+    str_error = "Protocol error";
+    break;
   case error_code::INTERNAL_ERROR:
-    return "internal error";
+    str_error = "Internal error";
+    break;
   case error_code::FLOW_CONTROL_ERROR:
-    return "Flow control error";
+    str_error = "Flow control error";
+    break;
   case error_code::SETTINGS_TIMEOUT:
-    return "Settings timeout";
+    str_error = "Settings timeout";
+    break;
   case error_code::STREAM_CLOSED:
-    return "Stream closed";
+    str_error = "Stream closed";
+    break;
   case error_code::FRAME_SIZE_ERROR:
-    return "Frame size error";
+    str_error = "Frame size error";
+    break;
   case error_code::REFUSED_STREAM:
-    return "Refused stream";
+    str_error = "Refused stream";
+    break;
   case error_code::CANCEL:
-    return "Canceled";
+    str_error = "Canceled";
+    break;
   case error_code::COMPRESSION_ERROR:
-    return "Compression error";
+    str_error = "Compression error";
+    break;
   case error_code::CONNECT_ERROR:
-    return "Connect error";
+    str_error = "Connect error";
+    break;
   case error_code::ENHANCE_YOUR_CALM:
-    return "Enhace your calm";
+    str_error = "Enhace your calm";
+    break;
   case error_code::INADEQUATE_SECURITY:
-    return "Inadequate security";
+    str_error = "Inadequate security";
+    break;
   case error_code::HTTP_1_1_REQUIRED:
-    return "HTTP1.1 required";
+    str_error = "HTTP1.1 required";
+    break;
+  default:
+    std::snprintf(buffer, len, "Unknown HTTP2 error %d", ev);
+    return buffer;
   }
 
-  std::snprintf(buffer, len, "Unknown HTTP2 error %d", ev);
+  std::copy_n(str_error, std::min(len, strlen(str_error)), buffer);
   return buffer;
 }
 

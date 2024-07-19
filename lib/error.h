@@ -41,17 +41,17 @@ template <> struct is_error_code_enum<::http2::error_code> : std::true_type {};
 
 namespace http2 {
 
-class error_category_impl : public boost::system::error_category {
+class error_category_impl final : public boost::system::error_category {
 public:
-  const char *name() const noexcept;
+  const char *name() const noexcept override;
 
-  std::string message(int ev) const;
-  char const *message(int ev, char *buffer, std::size_t len) const noexcept;
+  std::string message(int ev) const override;
+  const char *message(int ev, char *buffer, std::size_t len) const noexcept override;
 
-  bool failed(int ev) const noexcept;
+  bool failed(int ev) const noexcept override;
 };
 
-boost::system::error_category const &http2_category();
+const boost::system::error_category &http2_category();
 
 inline boost::system::error_code make_error_code(error_code e) {
   return boost::system::error_code(static_cast<int>(e), http2_category());

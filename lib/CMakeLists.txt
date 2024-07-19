@@ -69,7 +69,6 @@ set(PUBLIC_HEADERS
     request.h
     response.h
     connection.h
-    error.h
     base_client.h
     client_session.h
 )

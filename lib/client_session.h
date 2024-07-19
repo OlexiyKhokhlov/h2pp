@@ -7,7 +7,6 @@
 #include <boost/asio/error.hpp>
 
 #include "base_client.h"
-#include "error.h"
 
 namespace http2 {
 
@@ -118,7 +117,7 @@ private:
 
     is_connected_flag.test_and_set();
     connection_error_code.clear();
-    co_return http2::make_error_code(error_code::IS_OK);
+    co_return boost::system::error_code();
   }
 
   void init_read() {

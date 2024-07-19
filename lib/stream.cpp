@@ -114,7 +114,7 @@ std::size_t stream::prepare_headers(std::deque<utils::buffer> &out, rfc7541::enc
     timer.expires_after(m_request.timeout());
     timer.async_wait([this](const auto &ec) {
       if (ec != boost::asio::error::operation_aborted) {
-        finished(make_error_code(error_code::SETTINGS_TIMEOUT));
+        finished(boost::asio::error::timed_out);
       }
     });
   }

@@ -21,6 +21,9 @@ enum class index_type : unsigned {
  * All methods those manipulate with 'std::string' or 'std::string_view'
  * are just convient wrappers around corresponed 'std::vector' storage.
  *
+ * @note a constructor can throw an std::overflow_error when a header_field is too big
+ * to be inside a HTTP2 frame. but isn't a final check for that.
+ *
  * A 'type' of header field is a HTTP\2 feature.
  * WITHOUT_INDEX - means a HPACK encoder should never use indexing for this header  filed.
  * It can be used if you know a heder field will never be repeated in this session or when this header field size is
@@ -36,8 +39,6 @@ enum class index_type : unsigned {
  */
 class header_field {
 public:
-  explicit header_field(index_type type = index_type::DEFAULT) : m_type(type) {}
-
   header_field(const header_field &) = default;
   header_field &operator=(const header_field &) = default;
   header_field(header_field &&) = default;
@@ -45,15 +46,9 @@ public:
   ~header_field();
 
   header_field(const std::span<const uint8_t> name, const std::span<const uint8_t> value,
-                         index_type type = index_type::DEFAULT)
-      : m_name(name.begin(), name.end()), m_value(value.begin(), value.end()), m_type(type) {}
-
-  header_field(std::string_view name, std::string_view value, index_type type = index_type::DEFAULT)
-      : m_name(name.begin(), name.end()), m_value(value.begin(), value.end()), m_type(type) {}
-
-  header_field(std::vector<uint8_t> &&name, std::vector<uint8_t> &&value,
-               index_type type = index_type::DEFAULT) noexcept
-      : m_name(std::move(name)), m_value(std::move(value)), m_type(type) {}
+               index_type type = index_type::DEFAULT);
+  header_field(std::string_view name, std::string_view value, index_type type = index_type::DEFAULT);
+  header_field(std::vector<uint8_t> &&name, std::vector<uint8_t> &&value, index_type type = index_type::DEFAULT);
 
   [[nodiscard]] index_type type() const noexcept { return m_type; }
 

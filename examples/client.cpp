@@ -45,8 +45,8 @@ int main(int argc, char **argv) {
             boost::asio::use_future)
         .get();
 
-    http2::request request;
-    request.method(http2::method::GET).url(argv[1]).headers({{"accept", "*/*"}, {"user-agent", "h2pp/0.0.1"}});
+    http2::request request(argv[1], http2::method::GET);
+    request.headers({{"accept", "*/*"}, {"user-agent", "h2pp/0.0.1"}});
     auto response = client.async_send(std::move(request), boost::asio::use_future).get();
     for (const auto &h : response.headers()) {
       std::cout << h.name_view() << ":  " << h.value_view() << std::endl;

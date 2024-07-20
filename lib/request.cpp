@@ -1,26 +1,54 @@
 #include "request.h"
 
-#include <boost/url.hpp>
-
 namespace http2 {
-request &request::method(http2::method m) {
-  return headers({
-      {":method", to_string(m)},
-  });
-}
 
-request &request::url(std::string_view url_string) {
-  auto url = boost::urls::parse_uri(url_string);
-  if (url.has_error()) {
-    throw std::invalid_argument("invalid url");
+namespace {
+template <typename T> request &generic_url(request &owner, T url) {
+  if (url.scheme().empty()) {
+    throw std::invalid_argument("Empty scheme");
   }
 
-  return headers({
-      {":scheme", url->scheme()},
-      {":authority", url->authority().buffer()},
-      {":path", url->path() + (url->query().empty() ? "" : '?' + url->query()) +
-                    (url->fragment().empty() ? "" : '#' + url->fragment())},
-  });
+  if (url.authority().empty()) {
+    throw std::invalid_argument("Empty authority");
+  }
+
+  if (url.path().empty()) {
+    throw std::invalid_argument("Empty path");
+  }
+
+  return owner.header({":scheme", url.scheme()})
+      .header({":authority", url.encoded_authority()})
+      .header({":path", url.encoded_resource()});
+}
+} // namespace
+
+request::request(boost::url_view url_view, http2::method m) {
+  generic_url<boost::url_view>(*this, url_view);
+  header({":method", to_string(m)});
+}
+
+request::request(const boost::url &u, http2::method m) {
+  generic_url<boost::url_view>(*this, u);
+  header({":method", to_string(m)});
+}
+
+request::~request() = default;
+
+request::request(request &&rhs)
+    : header_list(std::move(rhs.header_list)), body_list(std::move(rhs.body_list)), span_list(std::move(rhs.span_list)),
+      size(rhs.size), timeout_value(rhs.timeout_value) {
+  rhs.size = 0;
+}
+
+request &request::operator=(request &&rhs) {
+  header_list = std::move(rhs.header_list);
+  body_list = std::move(rhs.body_list);
+  span_list = std::move(rhs.span_list);
+  size = rhs.size;
+  timeout_value = rhs.timeout_value;
+
+  rhs.size = 0;
+  return *this;
 }
 
 request &request::header(rfc7541::header_field &&h) {
@@ -28,7 +56,7 @@ request &request::header(rfc7541::header_field &&h) {
   return *this;
 }
 request &request::headers(std::initializer_list<rfc7541::header_field> fields) {
-  std::move(fields.begin(), fields.end(), std::back_inserter(header_list));
+  std::copy(fields.begin(), fields.end(), std::back_inserter(header_list));
   return *this;
 }
 
@@ -47,12 +75,6 @@ request &request::body(std::string &&str) {
   span_list.emplace_back(span);
   size += span.size_bytes();
   return *this;
-}
-
-void request::check_valid() const {
-  if (header_list.size() < 4) {
-    throw std::invalid_argument("Request doesn't have all required headers");
-  }
 }
 
 void request::commit_headers(std::size_t n) {

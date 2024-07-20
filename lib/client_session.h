@@ -59,7 +59,7 @@ public:
 
   /**
    * @brief async_send starts sending a request.
-   * When request is not valid or max count of parallel streams is reached can
+   * When max count of parallel streams is reached can
    * throw an exception. A response will be returned via completion token.
    * @param request is a request for sending
    * @param token is a completion token with signature  void(const
@@ -68,8 +68,6 @@ public:
   template <typename CompletionToken> auto async_send(request &&request, CompletionToken &&token) {
     using HandlerSignature = void(boost::system::error_code, response &&);
     using AnyCompletionHandlerT = boost::asio::any_completion_handler<HandlerSignature>;
-
-    request.check_valid();
 
     auto init = [this](auto &&h, auto &&rq) { initiate_send(std::move(rq), AnyCompletionHandlerT(std::move(h))); };
 

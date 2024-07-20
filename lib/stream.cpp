@@ -83,7 +83,7 @@ void stream::on_receive_continuation(rfc7541::header &&header, uint8_t flags, st
 std::size_t stream::prepare_headers(std::deque<utils::buffer> &out, rfc7541::encoder &encoder, std::size_t limit) {
   std::size_t used = 0;
   auto &rq = get_request();
-  auto &headers = rq.get_headers();
+  auto &headers = rq.raw_headers();
 
   auto [buffers, count] =
       encoder.encode(headers, is_cointinuation ? limit - 2 * sizeof(header) : limit - sizeof(header));
@@ -185,7 +185,7 @@ std::size_t stream::get_tx_data(std::deque<utils::buffer> &out, rfc7541::encoder
   }
 
   auto &rq = get_request();
-  auto &headers = rq.get_headers();
+  auto &headers = rq.raw_headers();
   if (!headers.empty()) {
     bytes_used += prepare_headers(out, encoder, limit);
   }

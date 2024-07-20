@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <limits>
-#include <string_view>
 
 #include "utils/endianess.h"
 
@@ -25,14 +24,14 @@ enum class frame_type : uint8_t {
 };
 
 enum class settings_type : uint16_t {
-  HEADER_TABLE_SIZE = utils::native_to_big(1u),
-  ENABLE_PUSH = utils::native_to_big(2u),
-  MAX_CONCURRENT_STREAMS = utils::native_to_big(3u),
-  INITIAL_WINDOW_SIZE = utils::native_to_big(4u),
-  MAX_FRAME_SIZE = utils::native_to_big(5u),
-  MAX_HEADER_LIST_SIZE = utils::native_to_big(6u),
+  HEADER_TABLE_SIZE = utils::native_to_big(uint16_t(1u)),
+  ENABLE_PUSH = utils::native_to_big(uint16_t(2u)),
+  MAX_CONCURRENT_STREAMS = utils::native_to_big(uint16_t(3u)),
+  INITIAL_WINDOW_SIZE = utils::native_to_big(uint16_t(4u)),
+  MAX_FRAME_SIZE = utils::native_to_big(uint16_t(5u)),
+  MAX_HEADER_LIST_SIZE = utils::native_to_big(uint16_t(6u)),
   // `RFC 8441 <https://tools.ietf.org/html/rfc8441>`
-  ENABLE_CONNECT_PROTOCOL = utils::native_to_big(8u),
+  ENABLE_CONNECT_PROTOCOL = utils::native_to_big(uint16_t(8u)),
   /**
    * SETTINGS_NO_RFC7540_PRIORITIES (:rfc:`9218`)
    */

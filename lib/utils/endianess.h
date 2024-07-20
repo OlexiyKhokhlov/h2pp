@@ -9,7 +9,7 @@ namespace utils {
 // Thrue compile-time methods for conversion native-to-big
 
 consteval uint32_t native_to_big(uint32_t x) {
-  if constexpr (boost::endian::order::native == boost::endian::order::native) {
+  if constexpr (boost::endian::order::native == boost::endian::order::big) {
     return x;
   } else {
     std::uint32_t step16 = x << 16 | x >> 16;
@@ -18,7 +18,7 @@ consteval uint32_t native_to_big(uint32_t x) {
 }
 
 consteval uint16_t native_to_big(uint16_t x) {
-  if constexpr (boost::endian::order::native == boost::endian::order::native) {
+  if constexpr (boost::endian::order::native == boost::endian::order::big) {
     return x;
   } else {
     return (x << 8) | (x >> 8);

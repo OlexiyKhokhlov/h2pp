@@ -1,10 +1,5 @@
 #include "bitstream.h"
 
-#include <algorithm>
-#include <array>
-#include <bit>
-#include <tuple>
-#include <type_traits>
 #include <vector>
 
 #include <boost/endian/conversion.hpp>
@@ -14,6 +9,7 @@
 #include "constants.h"
 #include "hpack_exception.h"
 #include "huffman.h"
+#include "integer.h"
 
 namespace rfc7541 {
 
@@ -26,7 +22,6 @@ ibitstream &ibitstream::operator>>(command &cmd) {
   // 0000 - header field without indexing (0x0)
   // 0001 - header field never indexed (0x10)
 
-  check_byte_align();
   check_enought_bytes(1);
 
   auto byte = data.data()[offset / 8];
@@ -52,51 +47,23 @@ ibitstream &ibitstream::operator>>(command &cmd) {
   return *this;
 }
 
-ibitstream &ibitstream::operator>>(std::size_t &nr) {
-  auto start_offset = offset;
-  auto bits = 8 - offset % 8;
-
-  uint8_t mask = utils::make_mask<uint8_t>(bits);
-  std::size_t res = data.data()[offset / 8] & mask;
-  offset += bits;
-  if (res < mask) {
-    nr = res;
-    return *this;
-  }
-
-  unsigned m = 0;
-  uint8_t b;
-  auto i = offset / 8;
-  do {
-    check_enought_bytes(1);
-    b = data.data()[i];
-    auto old = res;
-    res += (b & 0x7f) << m;
-    if (old > res) {
-      throw hpack_exception("Integer overflow", start_offset);
-    }
-    m += 7;
-    ++i;
-  } while (b & 0x80);
-
-  offset = i * 8;
-
-  nr = res;
+ibitstream &ibitstream::operator>>(uint32_t &nr) {
+  auto result = integer::decode(offset % 8, data.subspan(offset / 8));
+  offset += result.used_bytes * 8;
+  offset &= 0xf8;
+  nr = result.value;
   return *this;
 }
 
 ibitstream &ibitstream::operator>>(std::vector<uint8_t> &str) {
-  check_byte_align();
   check_enought_bytes(1);
 
   bool is_huffman = data.data()[offset / 8] & constants::ENCODED_STRING_FLAG;
   ++offset;
-  std::size_t len = 0;
+  uint32_t len = 0;
   (*this) >> len;
 
   // FIXME: Check len is not greater than allowed data
-
-  check_byte_align();
   check_enought_bytes(len);
 
   if (!is_huffman) {
@@ -187,12 +154,6 @@ void ibitstream::check_enought_bits(std::size_t bites) const {
 
   if (required_size > data_size) {
     throw hpack_exception("Not enought data", offset);
-  }
-}
-
-void ibitstream::check_byte_align() const {
-  if (offset % 8 != 0) {
-    throw hpack_exception("Unexpected byte alignment", offset);
   }
 }
 

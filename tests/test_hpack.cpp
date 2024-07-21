@@ -95,7 +95,7 @@ BOOST_AUTO_TEST_CASE(read_integer)
         std::vector<uint8_t> datanr = {0x2A};
 
         rfc7541::ibitstream in(datanr);
-        std::size_t num = 0;
+        uint32_t num = 0;
         in >> num;
         BOOST_CHECK_EQUAL(num, 42);
     }
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(read_integer)
         rfc7541::ibitstream in(datanr);
         rfc7541::command cmd;
         in >> cmd;
-        std::size_t num = 0;
+        uint32_t num = 0;
         in >> num;
         BOOST_CHECK_EQUAL(num, 10);
     }
@@ -117,7 +117,7 @@ BOOST_AUTO_TEST_CASE(read_integer)
         rfc7541::ibitstream in(datanr);
         rfc7541::command cmd;
         in >> cmd;
-        std::size_t num = 0;
+        uint32_t num = 0;
         in >> num;
         BOOST_CHECK_EQUAL(num, 1337);
     }

@@ -5,36 +5,10 @@
 #include "constants.h"
 #include "encoder_stream.h"
 #include "huffman.h"
+#include "integer.h"
 #include "utils/utils.h"
 
 using namespace rfc7541;
-
-namespace {
-
-encoded_integer encode_integer(unsigned bits, std::size_t num) {
-
-  uint8_t mask = utils::make_mask<uint8_t>(8 - bits);
-  if (num < mask) {
-    return {1, num};
-  }
-
-  std::size_t size = 1;
-  uint64_t value = mask;
-  num -= mask;
-
-  while (num >= 128) {
-    // data[offset / 8] = 0x80 & num % 128;
-    value |= (0x80 & num % 128) << (size * 8);
-    num /= 128;
-    ++size;
-  };
-
-  // data[offset / 8] = num;
-  value |= num << (size * 8);
-  return {++size, value};
-}
-
-} // namespace
 
 namespace rfc7541 {
 
@@ -58,7 +32,7 @@ std::pair<std::deque<utils::buffer>, std::size_t> encoder::encode(std::deque<rfc
 
     if (index.first != -1 && index.second) {
       // Fully indexed. Use command::INDEX
-      auto encoded_index = encode_integer(cmd_info::get(command::INDEX).bitlen, index.first);
+      auto encoded_index = integer::encode(cmd_info::get(command::INDEX).bitlen, index.first);
       field_size += encoded_index.length;
       if (field_size > bytes_left) {
         break;
@@ -83,7 +57,7 @@ std::pair<std::deque<utils::buffer>, std::size_t> encoder::encode(std::deque<rfc
       // TODO: do not put in the table to huge literals!
 
       // check size by name index & cmd
-      auto name_index = encode_integer(cmd_info::get(cmd).bitlen, index.first);
+      auto name_index = integer::encode(cmd_info::get(cmd).bitlen, index.first);
       field_size += name_index.length;
       if (field_size > bytes_left) {
         break;
@@ -98,7 +72,7 @@ std::pair<std::deque<utils::buffer>, std::size_t> encoder::encode(std::deque<rfc
       }
 
       // Check size with value length
-      auto encoded_value_size = encode_integer(1, value_sz.first);
+      auto encoded_value_size = integer::encode(1, value_sz.first);
       field_size += encoded_value_size.length;
       if (field_size > bytes_left) {
         break;
@@ -125,7 +99,7 @@ std::pair<std::deque<utils::buffer>, std::size_t> encoder::encode(std::deque<rfc
     if (field_size > bytes_left) {
       break;
     }
-    auto encoded_name_size = encode_integer(1, name_sz.first);
+    auto encoded_name_size = integer::encode(1, name_sz.first);
     field_size += encoded_name_size.length;
     if (field_size > bytes_left) {
       break;
@@ -136,7 +110,7 @@ std::pair<std::deque<utils::buffer>, std::size_t> encoder::encode(std::deque<rfc
     if (field_size > bytes_left) {
       break;
     }
-    auto encoded_value_size = encode_integer(1, value_sz.first);
+    auto encoded_value_size = integer::encode(1, value_sz.first);
     field_size += encoded_value_size.length;
     if (field_size > bytes_left) {
       break;

@@ -19,6 +19,8 @@ set(HPACK_SOURCES
     hpack/hpack_table.h
     hpack/indexed_dynamic_table.cpp
     hpack/indexed_dynamic_table.h
+    hpack/integer.cpp
+    hpack/integer.h
     hpack/huffman.cpp
     hpack/huffman.h
     hpack/static_table.cpp

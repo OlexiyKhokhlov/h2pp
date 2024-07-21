@@ -37,7 +37,7 @@ void encoder_stream::encode_string(const std::span<const uint8_t> src) {
   }
 }
 
-void encoder_stream::write_string(std::pair<std::size_t, bool> estimation, encoded_integer encoded_size,
+void encoder_stream::write_string(std::pair<std::size_t, bool> estimation, integer::encoded_result encoded_size,
                                   std::span<const uint8_t> src) {
 
   if (estimation.second) {

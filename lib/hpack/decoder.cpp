@@ -32,7 +32,7 @@ header decoder::decode(std::span<const uint8_t> data) {
 }
 
 void decoder::index_cmd(ibitstream &stream, header &header) {
-  std::size_t index = 0;
+  uint32_t index = 0;
   stream >> index;
   if (index == 0) {
     throw hpack_exception("Invalid index value", stream.bit_pos());
@@ -42,7 +42,7 @@ void decoder::index_cmd(ibitstream &stream, header &header) {
 }
 
 void decoder::change_table_size_cmd(ibitstream &stream, header & /*h*/) {
-  std::size_t max_size = 0;
+  uint32_t max_size = 0;
   stream >> max_size;
   table.update_size(max_size);
 }
@@ -56,7 +56,7 @@ void decoder::literal_never_index_cmd(ibitstream &stream, header &h) {
 }
 
 void decoder::literal_without_index_impl(ibitstream &stream, header &h, index_type type) {
-  std::size_t index = 0;
+  uint32_t index = 0;
   stream >> index;
 
   std::vector<uint8_t> name;

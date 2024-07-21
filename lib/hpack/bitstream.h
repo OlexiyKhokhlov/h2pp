@@ -22,7 +22,7 @@ public:
   bool is_finished() const { return data.size_bytes() == offset / 8; }
 
   ibitstream &operator>>(command &cmd);
-  ibitstream &operator>>(std::size_t &integer);
+  ibitstream &operator>>(uint32_t &integer);
   ibitstream &operator>>(std::vector<uint8_t> &vector);
 
 private:
@@ -35,7 +35,6 @@ private:
 
   void check_enought_bytes(std::size_t bytes) const;
   void check_enought_bits(std::size_t bites) const;
-  void check_byte_align() const;
 };
 
 } // namespace rfc7541

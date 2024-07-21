@@ -22,7 +22,7 @@ std::pair<std::deque<utils::buffer>, std::size_t> encoder::encode(std::deque<rfc
   std::size_t bytes_left = size_limit;
 
   for (const auto &f : fields) {
-    std::size_t field_size = 0;
+    uint32_t field_size = 0;
 
     // TODO: do not lookup value when it isn't required!
     auto index = table.field_index(f.name(), f.value());
@@ -128,13 +128,14 @@ std::pair<std::deque<utils::buffer>, std::size_t> encoder::encode(std::deque<rfc
   return {out.flush(), encoded_fields};
 }
 
-std::pair<std::size_t, bool> encoder::estimate_string_size(std::span<const uint8_t> src) {
-  auto bit_len = huffman::estimate_len(src);
-  auto byte_len = utils::ceil_order2(bit_len, 3) / 8;
+std::pair<uint32_t, bool> encoder::estimate_string_size(std::span<const uint8_t> src) {
+  auto encoded_bit_len = huffman::estimate_len(src);
+  // At this point a string size must be less that 2^24-1
+  uint32_t encoded_bytes_len = static_cast<uint32_t>(utils::ceil_order2(encoded_bit_len, 3) / 8);
   auto src_len = src.size();
-  if (byte_len < src_len && (src_len < 10 || (100 * byte_len / src_len) <= config.min_huffman_rate)) {
+  if (encoded_bytes_len < src_len && (src_len < 10 || (100 * encoded_bytes_len / src_len) <= config.min_huffman_rate)) {
     // Use huffman codes
-    return {byte_len, true};
+    return {encoded_bytes_len, true};
   }
   // Use as is
   return {src_len, false};

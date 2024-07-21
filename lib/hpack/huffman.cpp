@@ -334,7 +334,7 @@ const std::span<const uint8_t> allowed_code_lengths() { return code_len_array; }
 
 std::size_t estimate_len(std::span<const uint8_t> data) {
   auto bits = std::accumulate(std::begin(data), std::end(data), static_cast<std::size_t>(0),
-                              [](std::size_t sum, auto byte) { return sum + encode(byte).bitLength; });
+                              [](auto sum, auto byte) { return sum + encode(byte).bitLength; });
   return bits;
 }
 

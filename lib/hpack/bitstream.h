@@ -27,7 +27,7 @@ public:
 
 private:
   const std::span<const uint8_t> data;
-  uint32_t offset = 0;
+  uint64_t offset = 0;
 
   uint32_t take_bits(std::size_t bit_len);
   void commit_bits(std::size_t bit_len);

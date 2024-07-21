@@ -40,7 +40,7 @@ public:
                                                            std::size_t size_limit);
 
 private:
-  std::pair<std::size_t, bool> estimate_string_size(std::span<const uint8_t> src);
+  std::pair<uint32_t, bool> estimate_string_size(std::span<const uint8_t> src);
 
 private:
   encoder_config config;

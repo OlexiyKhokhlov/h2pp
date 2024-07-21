@@ -50,7 +50,7 @@ ibitstream &ibitstream::operator>>(command &cmd) {
 ibitstream &ibitstream::operator>>(uint32_t &nr) {
   auto result = integer::decode(offset % 8, data.subspan(offset / 8));
   offset += result.used_bytes * 8;
-  offset &= 0xf8;
+  offset &= ~utils::make_mask<uint64_t>(3);
   nr = result.value;
   return *this;
 }

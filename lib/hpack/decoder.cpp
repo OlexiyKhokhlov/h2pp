@@ -11,7 +11,7 @@ using namespace constants;
 
 decoder::~decoder() = default;
 
-header decoder::decode(std::span<const uint8_t> data) {
+header decoder::decode(std::span<const uint8_t> src) {
   using cmd_ptr = void (decoder::*)(ibitstream &stream, header &);
   static cmd_ptr commands[] = {
       &decoder::index_cmd,
@@ -21,14 +21,14 @@ header decoder::decode(std::span<const uint8_t> data) {
       &decoder::literal_never_index_cmd,
   };
 
-  ibitstream stream(data);
-  header h;
+  ibitstream stream(src);
+  header fields;
   command cmd;
   while (!stream.is_finished()) {
     stream >> cmd;
-    std::invoke(commands[static_cast<unsigned>(cmd)], this, stream, h);
+    std::invoke(commands[static_cast<unsigned>(cmd)], this, stream, fields);
   }
-  return h;
+  return fields;
 }
 
 void decoder::index_cmd(ibitstream &stream, header &header) {

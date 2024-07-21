@@ -7,12 +7,11 @@
 #include <boost/smart_ptr/intrusive_ptr.hpp>
 #include <boost/smart_ptr/intrusive_ref_counter.hpp>
 
-#include "utils/buffer.h"
-
 #include "dummy_window.h"
 #include "error.h"
 #include "request.h"
 #include "response.h"
+#include "utils/buffer.h"
 
 namespace rfc7541 {
 class encoder;

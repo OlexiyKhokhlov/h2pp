@@ -33,7 +33,7 @@ public:
    * and cleares all internall data;
    * @return
    */
-  std::deque<buffer> flush();
+  std::deque<buffer> flush() noexcept;
 
 private:
   void check_size(const size_t sz);

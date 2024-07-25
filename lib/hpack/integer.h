@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <span>
-#include <stdexcept>
 
 #include "utils/utils.h"
 

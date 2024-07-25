@@ -27,7 +27,7 @@ struct info {
   uint8_t mask;
 };
 
-static constexpr info infos[] = {
+constexpr info infos[] = {
     {0x80, 1, 0x80}, // command::INDEX
     {0x40, 2, 0xc0}, // command::LITERAL_INCREMENTAL_INDEX
     {0x20, 3, 0xe0}, // command::CHANGE_TABLE_SIZE

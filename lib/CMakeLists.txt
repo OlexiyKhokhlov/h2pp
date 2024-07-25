@@ -25,6 +25,8 @@ set(HPACK_SOURCES
     hpack/huffman.h
     hpack/static_table.cpp
     hpack/static_table.h
+    hpack/string.cpp
+    hpack/string.h
 )
 
 set(SOURCES

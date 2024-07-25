@@ -1,5 +1,7 @@
 #include "integer.h"
 
+#include <stdexcept>
+
 constexpr auto MAX_HPACK_INT = (1 << 24) - 1;
 
 namespace rfc7541::integer {

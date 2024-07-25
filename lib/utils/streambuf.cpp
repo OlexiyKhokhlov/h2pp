@@ -38,7 +38,7 @@ void streambuf::push_back(std::span<const uint8_t> src) {
   }
 }
 
-std::deque<buffer> streambuf::flush() {
+std::deque<buffer> streambuf::flush() noexcept {
   std::deque<buffer> ret;
   ret.swap(buffers);
   return ret;

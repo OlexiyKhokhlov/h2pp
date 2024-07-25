@@ -1,7 +1,8 @@
 #pragma once
 
+#include <stdexcept>
+
 #include "dynamic_table.h"
-#include "hpack_exception.h"
 #include "indexed_dynamic_table.h"
 #include "static_table.h"
 
@@ -20,7 +21,7 @@ public:
 
   std::pair<std::span<const uint8_t>, std::span<const uint8_t>> at(std::size_t i) const {
     if (i == 0) {
-      throw hpack_exception("Invalid index value 0", 0);
+      throw std::runtime_error("Invalid index value 0");
     }
     if (i <= static_table::size()) {
       return static_table::at(i);

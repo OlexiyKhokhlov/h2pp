@@ -14,8 +14,6 @@ set(HPACK_SOURCES
     hpack/encoder_stream.cpp
     hpack/header_field.h
     hpack/header_field.cpp
-    hpack/hpack_exception.cpp
-    hpack/hpack_exception.h
     hpack/hpack_table.h
     hpack/indexed_dynamic_table.cpp
     hpack/indexed_dynamic_table.h

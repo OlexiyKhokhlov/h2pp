@@ -1,8 +1,7 @@
 #include "dynamic_table.h"
 
 #include <cstring>
-
-#include "hpack_exception.h"
+#include <stdexcept>
 
 namespace rfc7541 {
 
@@ -13,7 +12,7 @@ std::pair<std::span<const uint8_t>, std::span<const uint8_t>> dynamic_table::at(
   }
 
   // FIXME: offset
-  throw hpack_exception("Invalid index", 0);
+  throw std::runtime_error("Invalid index");
 }
 
 void dynamic_table::insert(const std::span<const uint8_t> name, const std::span<const uint8_t> value) {

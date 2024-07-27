@@ -1,5 +1,7 @@
 #include "string.h"
 
+#include <stdexcept>
+
 #include "bitstream.h"
 #include "constants.h"
 #include "huffman.h"

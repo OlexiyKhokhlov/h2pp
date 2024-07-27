@@ -19,9 +19,9 @@ uint32_t ibitstream::take_bits(std::size_t len) noexcept {
   auto *first = reinterpret_cast<const uint64_t *>(data.data() + last_ind - 7);
   uint64_t bits = boost::endian::big_to_native(*first);
 
-  bits &= utils::make_mask<uint64_t>(len) << last_gap;
+  bits &= utils::make_mask<uint64_t>(len) << unsigned(last_gap);
   bits <<= (32 - bytes_len * 8 + first_gap);
-  return bits;
+  return uint32_t(bits);
 }
 
 void ibitstream::commit_bits(std::size_t bit_len) noexcept {

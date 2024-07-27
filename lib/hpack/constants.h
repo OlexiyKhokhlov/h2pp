@@ -5,7 +5,11 @@
 namespace rfc7541 {
 
 namespace constants {
-constexpr uint64_t ENCODED_STRING_FLAG = 0x80;
+
+enum class string_flag : uint8_t {
+  INPLACE = 0,
+  ENCODED = 0x80,
+};
 }
 
 enum class command : unsigned {

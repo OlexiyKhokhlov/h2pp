@@ -9,6 +9,15 @@
 
 namespace rfc7541 {
 
+bool encoder_stream::push_back(std::span<const uint8_t> src) {
+  if (src.size() <= left) {
+    left -= src.size();
+    stream.push_back(src);
+    return true;
+  }
+  return false;
+}
+
 void encoder_stream::encode_string(const std::span<const uint8_t> src) {
   uint64_t val = 0;
   unsigned len = 0;
@@ -18,7 +27,7 @@ void encoder_stream::encode_string(const std::span<const uint8_t> src) {
     if (bites_left < code.bitLength) {
       auto big = boost::endian::native_to_big(val << bites_left);
       auto ready_bytes = len / 8;
-      push_back({reinterpret_cast<const uint8_t *>(&big), ready_bytes});
+      stream.push_back({reinterpret_cast<const uint8_t *>(&big), ready_bytes});
       len = len - ready_bytes * 8;
     }
     val <<= code.bitLength;
@@ -33,22 +42,21 @@ void encoder_stream::encode_string(const std::span<const uint8_t> src) {
     val <<= bites_left;
     val |= utils::make_mask<uint64_t>(bites_left);
     auto big = boost::endian::native_to_big(val);
-    push_back({reinterpret_cast<const uint8_t *>(&big), utils::ceil_order2(len, 3) / 8});
+    stream.push_back({reinterpret_cast<const uint8_t *>(&big), utils::ceil_order2(len, 3) / 8});
   }
 }
 
-void encoder_stream::write_string(std::pair<std::size_t, bool> estimation, integer::encoded_result encoded_size,
-                                  std::span<const uint8_t> src) {
+void encoder_stream::write_string(std::pair<std::size_t, constants::string_flag> estimation,
+                                  integer::encoded_result encoded_size, std::span<const uint8_t> src) {
 
-  if (estimation.second) {
+  if (estimation.second == constants::string_flag::ENCODED) {
     // Encoded string
-    encoded_size.value |= constants::ENCODED_STRING_FLAG;
-    push_back(encoded_size.as_span());
+    stream.push_back(encoded_size.as_span());
     encode_string(src);
   } else {
     // Save as is
-    push_back(encoded_size.as_span());
-    push_back(src);
+    stream.push_back(encoded_size.as_span());
+    stream.push_back(src);
   }
 }
 

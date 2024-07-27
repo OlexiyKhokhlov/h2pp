@@ -6,6 +6,7 @@
 
 #include <utils/buffer.h>
 
+#include "constants.h"
 #include "header_field.h"
 #include "hpack_table.h"
 
@@ -40,7 +41,7 @@ public:
                                                            std::size_t size_limit);
 
 private:
-  std::pair<uint32_t, bool> estimate_string_size(std::span<const uint8_t> src);
+  std::pair<uint32_t, constants::string_flag> estimate_string_size(std::span<const uint8_t> src);
 
 private:
   encoder_config config;

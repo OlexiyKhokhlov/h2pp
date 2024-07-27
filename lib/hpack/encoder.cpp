@@ -2,7 +2,6 @@
 
 #include <boost/endian/conversion.hpp>
 
-#include "constants.h"
 #include "encoder_stream.h"
 #include "huffman.h"
 #include "integer.h"
@@ -16,7 +15,7 @@ encoder::encoder() : table(config.init_table_size) {}
 
 std::pair<std::deque<utils::buffer>, std::size_t> encoder::encode(std::deque<rfc7541::header_field> fields,
                                                                   std::size_t size_limit) {
-  encoder_stream out;
+  encoder_stream out(size_limit);
 
   std::size_t encoded_fields = 0;
   std::size_t bytes_left = size_limit;
@@ -32,12 +31,12 @@ std::pair<std::deque<utils::buffer>, std::size_t> encoder::encode(std::deque<rfc
 
     if (index.first != -1 && index.second) {
       // Fully indexed. Use command::INDEX
-      auto encoded_index = integer::encode(cmd_info::get(command::INDEX).bitlen, index.first);
+
+      auto encoded_index = integer::encode(command::INDEX, index.first);
       field_size += encoded_index.length;
       if (field_size > bytes_left) {
         break;
       }
-      encoded_index.value |= cmd_info::get(command::INDEX).value;
       out.push_back(encoded_index.as_span());
 
       bytes_left -= field_size;
@@ -57,12 +56,11 @@ std::pair<std::deque<utils::buffer>, std::size_t> encoder::encode(std::deque<rfc
       // TODO: do not put in the table to huge literals!
 
       // check size by name index & cmd
-      auto name_index = integer::encode(cmd_info::get(cmd).bitlen, index.first);
+      auto name_index = integer::encode(cmd, index.first);
       field_size += name_index.length;
       if (field_size > bytes_left) {
         break;
       }
-      name_index.value |= cmd_info::get(cmd).value;
 
       // Check size with value string
       auto value_sz = estimate_string_size(f.value());
@@ -72,7 +70,7 @@ std::pair<std::deque<utils::buffer>, std::size_t> encoder::encode(std::deque<rfc
       }
 
       // Check size with value length
-      auto encoded_value_size = integer::encode(1, value_sz.first);
+      auto encoded_value_size = integer::encode(value_sz.second, value_sz.first);
       field_size += encoded_value_size.length;
       if (field_size > bytes_left) {
         break;
@@ -99,7 +97,7 @@ std::pair<std::deque<utils::buffer>, std::size_t> encoder::encode(std::deque<rfc
     if (field_size > bytes_left) {
       break;
     }
-    auto encoded_name_size = integer::encode(1, name_sz.first);
+    auto encoded_name_size = integer::encode(name_sz.second, name_sz.first);
     field_size += encoded_name_size.length;
     if (field_size > bytes_left) {
       break;
@@ -110,7 +108,7 @@ std::pair<std::deque<utils::buffer>, std::size_t> encoder::encode(std::deque<rfc
     if (field_size > bytes_left) {
       break;
     }
-    auto encoded_value_size = integer::encode(1, value_sz.first);
+    auto encoded_value_size = integer::encode(value_sz.second, value_sz.first);
     field_size += encoded_value_size.length;
     if (field_size > bytes_left) {
       break;
@@ -128,17 +126,17 @@ std::pair<std::deque<utils::buffer>, std::size_t> encoder::encode(std::deque<rfc
   return {out.flush(), encoded_fields};
 }
 
-std::pair<uint32_t, bool> encoder::estimate_string_size(std::span<const uint8_t> src) {
+std::pair<uint32_t, constants::string_flag> encoder::estimate_string_size(std::span<const uint8_t> src) {
   auto encoded_bit_len = huffman::estimate_len(src);
   // At this point a string size must be less that 2^24-1
   uint32_t encoded_bytes_len = static_cast<uint32_t>(utils::ceil_order2(encoded_bit_len, 3) / 8);
   auto src_len = src.size();
   if (encoded_bytes_len < src_len && (src_len < 10 || (100 * encoded_bytes_len / src_len) <= config.min_huffman_rate)) {
     // Use huffman codes
-    return {encoded_bytes_len, true};
+    return {encoded_bytes_len, constants::string_flag::ENCODED};
   }
   // Use as is
-  return {src_len, false};
+  return {src_len, constants::string_flag::INPLACE};
 }
 
 } // namespace rfc7541

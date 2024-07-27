@@ -61,7 +61,7 @@ decoded_result decode(std::span<const uint8_t> src) {
 
   decoded_result result;
 
-  bool is_huffman = src[0] & constants::ENCODED_STRING_FLAG;
+  bool is_huffman = src[0] & uint8_t(constants::string_flag::ENCODED);
 
   auto str_length = integer::decode(1, src);
   src = src.subspan(str_length.used_bytes);

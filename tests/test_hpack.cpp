@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(read_integer) {
   {
     std::vector<uint8_t> datanr = {0x2A};
 
-    auto result = rfc7541::integer::decode(0, datanr);
+    auto result = rfc7541::integer::decode(1, datanr);
 
     BOOST_CHECK_EQUAL(result.used_bytes, 1);
     BOOST_CHECK_EQUAL(result.value, 42);

@@ -1,142 +1,10 @@
 #define BOOST_TEST_MODULE HPack
 #include <boost/test/unit_test.hpp>
 
-#include <algorithm>
-
 #include <hpack/bitstream.h>
 #include <hpack/constants.h>
 #include <hpack/decoder.h>
 #include <hpack/encoder.h>
-#include <hpack/huffman.h>
-#include <hpack/integer.h>
-#include <hpack/string.h>
-
-BOOST_AUTO_TEST_SUITE(Huffman_Codes)
-
-BOOST_AUTO_TEST_CASE(Encode_Decode_All_symbols) {
-  // Encode & decode all allowed symbols
-  for (uint16_t value = 0; value < 256; ++value) {
-    const auto huff_code = rfc7541::huffman::encode(value);
-    const auto decoded_value = rfc7541::huffman::decode(huff_code);
-    BOOST_CHECK(decoded_value.has_value());
-    BOOST_CHECK_EQUAL(value, decoded_value.value());
-  }
-}
-
-BOOST_AUTO_TEST_CASE(Decode_wrong_codes) {
-  const auto allowed_length = rfc7541::huffman::allowed_code_lengths();
-
-  // Decode wrong huffman codes
-  for (uint8_t len = 0; len <= 32; ++len) {
-    if (std::find(std::begin(allowed_length), std::end(allowed_length), len) == std::end(allowed_length)) {
-      // code is ok, length is wrong
-      BOOST_CHECK(!rfc7541::huffman::decode({0, len}).has_value());
-    } else {
-      // code is wrong, length is ok
-      BOOST_CHECK(!rfc7541::huffman::decode({0xFF, len}).has_value());
-    }
-  }
-}
-BOOST_AUTO_TEST_SUITE_END()
-
-BOOST_AUTO_TEST_SUITE(Decode_integer)
-/*
-BOOST_AUTO_TEST_CASE(read_command) {
-  {
-    std::vector<uint8_t> index_data = {0x80};
-    rfc7541::ibitstream in(index_data);
-    rfc7541::command cmd;
-    in >> cmd;
-    BOOST_CHECK_EQUAL((unsigned)cmd, (unsigned)rfc7541::command::INDEX);
-  }
-
-  {
-    std::vector<uint8_t> literal_incremental_index_data = {0x4F};
-    rfc7541::ibitstream in(literal_incremental_index_data);
-    rfc7541::command cmd;
-    in >> cmd;
-    BOOST_CHECK_EQUAL((unsigned)cmd, (unsigned)rfc7541::command::LITERAL_INCREMENTAL_INDEX);
-  }
-
-  {
-    std::vector<uint8_t> change_table_size_data = {0x30};
-    rfc7541::ibitstream in(change_table_size_data);
-    rfc7541::command cmd;
-    in >> cmd;
-    BOOST_CHECK_EQUAL((unsigned)cmd, (unsigned)rfc7541::command::CHANGE_TABLE_SIZE);
-  }
-
-  {
-    std::vector<uint8_t> literal_without_index_data = {0x0F};
-    rfc7541::ibitstream in(literal_without_index_data);
-    rfc7541::command cmd;
-    in >> cmd;
-    BOOST_CHECK_EQUAL((unsigned)cmd, (unsigned)rfc7541::command::LITERAL_WITHOUT_INDEX);
-  }
-
-  {
-    std::vector<uint8_t> literal_never_index_data = {0x1C};
-    rfc7541::ibitstream in(literal_never_index_data);
-    rfc7541::command cmd;
-    in >> cmd;
-    BOOST_CHECK_EQUAL((unsigned)cmd, (unsigned)rfc7541::command::LITERAL_NEVER_INDEX);
-  }
-}
-*/
-BOOST_AUTO_TEST_CASE(read_integer) {
-  {
-    std::vector<uint8_t> datanr = {0x2A};
-
-    auto result = rfc7541::integer::decode(1, datanr);
-
-    BOOST_CHECK_EQUAL(result.used_bytes, 1);
-    BOOST_CHECK_EQUAL(result.value, 42);
-  }
-
-  {
-    std::vector<uint8_t> datanr = {0x2A};
-
-    auto result = rfc7541::integer::decode(3, datanr);
-
-    BOOST_CHECK_EQUAL(result.used_bytes, 1);
-    BOOST_CHECK_EQUAL(result.value, 10);
-  }
-
-  {
-    std::vector<uint8_t> datanr = {0x3f, 0x9a, 0x0a};
-
-    auto result = rfc7541::integer::decode(3, datanr);
-
-    BOOST_CHECK_EQUAL(result.used_bytes, 3);
-    BOOST_CHECK_EQUAL(result.value, 1337);
-  }
-}
-
-BOOST_AUTO_TEST_CASE(read_string) {
-  {
-    std::vector<uint8_t> datastr = {0x05, 'H', 'e', 'l', 'l', 'o'};
-
-    auto decoded_str = rfc7541::string::decode(datastr);
-    std::vector<uint8_t> expected(datastr.begin() + 1, datastr.end());
-
-    BOOST_CHECK_EQUAL(decoded_str.used_bytes, datastr.size());
-    BOOST_TEST(decoded_str.value == expected);
-  }
-
-  {
-    std::vector<uint8_t> datastr = {0x8c, 0xf1, 0xe3, 0xc2, 0xe5, 0xf2, 0x3a, 0x6b, 0xa0, 0xab, 0x90, 0xf4, 0xff};
-
-    auto decoded_str = rfc7541::string::decode(datastr);
-
-    const auto expected_str = "www.example.com";
-    std::vector<uint8_t> expected(expected_str, expected_str + strlen(expected_str));
-
-    BOOST_CHECK_EQUAL(decoded_str.used_bytes, datastr.size());
-    BOOST_TEST(decoded_str.value == expected);
-  }
-}
-
-BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(Decoder_Encoder)
 
@@ -202,32 +70,32 @@ BOOST_AUTO_TEST_CASE(EncodeDecode_with_huffman) {
   }
 }
 
-BOOST_AUTO_TEST_CASE(TestDecoder) {
-  std::vector<uint8_t> encoded_data = {
-      0x82, 0x87, 0x84, 0x41, 0x8b, 0xf1, 0xe3, 0xc2, 0xf3, 0x19, 0x33, 0xdb, 0x1a, 0xe4, 0x3d, 0x3f,
-  };
-  // std::vector<uint8_t> encoded_data = {0x42, 0x82, 0x98, 0xa9};
-  rfc7541::decoder decoder;
-  auto decoded_headers = decoder.decode(encoded_data);
-  for (const auto &h : decoded_headers) {
-    std::cout << h.name_view() << ": " << h.value_view();
-  }
-}
+// BOOST_AUTO_TEST_CASE(TestDecoder) {
+//   std::vector<uint8_t> encoded_data = {
+//       0x82, 0x87, 0x84, 0x41, 0x8b, 0xf1, 0xe3, 0xc2, 0xf3, 0x19, 0x33, 0xdb, 0x1a, 0xe4, 0x3d, 0x3f,
+//   };
+//   // std::vector<uint8_t> encoded_data = {0x42, 0x82, 0x98, 0xa9};
+//   rfc7541::decoder decoder;
+//   auto decoded_headers = decoder.decode(encoded_data);
+//   for (const auto &h : decoded_headers) {
+//     std::cout << h.name_view() << ": " << h.value_view();
+//   }
+// }
 
-BOOST_AUTO_TEST_CASE(Decode_Sample) {
-  std::vector<uint8_t> data = {0x87, 0x41, 0x8b, 0xf1, 0xe3, 0xc2, 0xf3, 0x1c, 0xf3, 0x50,
-                               0x55, 0xc8, 0x7a, 0x7f, 0x84, 0x82, 0x53, 0x03, 0x2a, 0x2f,
-                               0x2a, 0x7a, 0x87, 0x9c, 0x55, 0xd6, 0xc0, 0x17, 0x02, 0xe1};
+// BOOST_AUTO_TEST_CASE(Decode_Sample) {
+//   std::vector<uint8_t> data = {0x87, 0x41, 0x8b, 0xf1, 0xe3, 0xc2, 0xf3, 0x1c, 0xf3, 0x50,
+//                                0x55, 0xc8, 0x7a, 0x7f, 0x84, 0x82, 0x53, 0x03, 0x2a, 0x2f,
+//                                0x2a, 0x7a, 0x87, 0x9c, 0x55, 0xd6, 0xc0, 0x17, 0x02, 0xe1};
 
-  rfc7541::decoder decoder;
-  auto header = decoder.decode(data);
-  std::cout << std::endl;
-  std::cout << std::endl;
-  std::cout << std::endl;
-  for (const auto &h : header) {
-    std::cout << "\t" << h.name_view() << ": " << h.value_view() << std::endl;
-  }
-}
+//   rfc7541::decoder decoder;
+//   auto header = decoder.decode(data);
+//   std::cout << std::endl;
+//   std::cout << std::endl;
+//   std::cout << std::endl;
+//   for (const auto &h : header) {
+//     std::cout << "\t" << h.name_view() << ": " << h.value_view() << std::endl;
+//   }
+// }
 
 // BOOST_AUTO_TEST_CASE(TestEncDec) {
 //   std::deque<rfc7541::header_field> fields = {

@@ -2,8 +2,6 @@
 
 #include <stdexcept>
 
-constexpr auto MAX_HPACK_INT = (1 << 24) - 16;
-
 namespace rfc7541::integer {
 
 encoded_result encode(uint8_t init, unsigned bitlen, uint32_t src_value) {
@@ -35,19 +33,20 @@ encoded_result encode(uint8_t init, unsigned bitlen, uint32_t src_value) {
   return result;
 }
 
-decoded_result decode(unsigned bit_suffix_len, std::span<const uint8_t> src) {
-  if (src.empty() || bit_suffix_len > 4 || bit_suffix_len == 0) {
+decoded_result decode(unsigned bit_suffix_len, std::span<const uint8_t> init_src) {
+  if (init_src.empty() || bit_suffix_len > 4 || bit_suffix_len == 0) {
     throw std::invalid_argument("A source can't be empty. A suffix len can't be greater 4");
   }
 
-  decoded_result result{1, 0};
+  uint64_t value = 0;
 
   uint8_t mask = utils::make_mask<uint8_t>(8 - bit_suffix_len);
-  result.value = src.front() & mask;
-  if (result.value < mask) {
-    return result;
+  value = init_src.front() & mask;
+  if (value < mask) {
+    return {1, uint32_t(value)};
   }
 
+  auto src = init_src;
   unsigned m = 0;
   uint8_t b;
   do {
@@ -55,17 +54,16 @@ decoded_result decode(unsigned bit_suffix_len, std::span<const uint8_t> src) {
     if (src.empty()) {
       throw std::invalid_argument("A src has not enough data");
     }
-    result.used_bytes++;
 
     b = src.front();
-    result.value += (b & 0x7f) << m;
-    if (result.value > MAX_HPACK_INT) {
-      throw std::overflow_error("An overflow in HPACK int creation");
+    value += uint64_t(b & 0x7f) << m;
+    if (value > MAX_HPACK_INT) {
+      throw std::overflow_error("An overflow in HPACK int decoding");
     }
     m += 7;
   } while (b & 0x80);
 
-  return result;
+  return {1 + unsigned(std::distance(init_src.begin(), src.begin())), uint32_t(value)};
 }
 
 } // namespace rfc7541::integer

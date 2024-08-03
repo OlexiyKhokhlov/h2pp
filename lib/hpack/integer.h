@@ -9,8 +9,8 @@
 namespace rfc7541::integer {
 
 struct encoded_result {
-  uint8_t value[5];
   uint8_t length = 0;
+  uint8_t value[5];
 
   std::span<const uint8_t> as_span() const noexcept { return {value, length}; }
 };
@@ -29,5 +29,7 @@ struct decoded_result {
 };
 
 decoded_result decode(unsigned bit_suffix_len, std::span<const uint8_t> src);
+
+constexpr auto MAX_HPACK_INT = (1 << 24) - 16;
 
 } // namespace rfc7541::integer

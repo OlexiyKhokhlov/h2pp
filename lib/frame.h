@@ -28,6 +28,11 @@ struct header {
   uint32_t stream_id = 0;
   // frame data follow
 
+  std::span<const uint8_t> payload() const {
+    return {reinterpret_cast<const uint8_t *>(this) + sizeof(*this),
+            reinterpret_cast<const uint8_t *>(this) + sizeof(*this) + length.value()};
+  }
+
   std::size_t payload_size() const { return length.value(); }
 
   void set_payload_size(uint32_t size) { length = size; }
@@ -137,7 +142,7 @@ public:
   ~frame_analyzer() = default;
 
   /**
-   * @brief from_buffer creates a frame_adaptor from raw data.
+   * @brief from_buffer creates a frame_analyzer from raw data.
    * @param buffer contains raw data. data size must be not less that
    * min_size()
    * @return

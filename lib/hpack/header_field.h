@@ -52,8 +52,8 @@ public:
 
   [[nodiscard]] index_type type() const noexcept { return m_type; }
 
-  [[nodiscard]] const std::span<const uint8_t> name() const noexcept { return m_name; }
-  [[nodiscard]] const std::span<const uint8_t> value() const noexcept { return m_value; }
+  [[nodiscard]] std::span<const uint8_t> name() const noexcept { return m_name; }
+  [[nodiscard]] std::span<const uint8_t> value() const noexcept { return m_value; }
 
   [[nodiscard]] std::string_view name_view() const noexcept {
     return {reinterpret_cast<const char *>(m_name.data()), m_name.size()};

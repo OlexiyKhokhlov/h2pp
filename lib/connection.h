@@ -18,11 +18,12 @@ public:
   explicit connection(boost::asio::io_context &io)
       : strand(io.get_executor()), ssl_context(boost::asio::ssl::context::sslv23), ssl_socket(strand, ssl_context) {}
 
-  connection(connection &&c) : ssl_context(std::move(c.ssl_context)), ssl_socket(std::move(c.ssl_socket)) {}
+  // connection(connection &&c) : ssl_context(std::move(c.ssl_context)), ssl_socket(std::move(c.ssl_socket)) {}
 
   connection(const connection &c) = delete;
   connection &operator=(const connection &c) = delete;
-  virtual ~connection() = default;
+
+  virtual ~connection() { OPENSSL_thread_stop(); }
 
   /**
    * @brief connected_point
@@ -153,9 +154,9 @@ boost::asio::awaitable<void> connection<NetworkType>::co_connect(std::string_vie
 template <typename NetworkType>
 template <typename CompletionToken>
 auto connection<NetworkType>::async_connect(std::string_view host, std::string_view service, CompletionToken &&token) {
-  ssl_context = boost::asio::ssl::context{boost::asio::ssl::context::sslv23};
-  ssl_socket = SocketType{ssl_socket.get_executor(), ssl_context};
 
+  // TODO: reuse this connection after disconnect?
+  // Need to create a new SSL socket in thread?
   prepare_ssl(host);
 
   return boost::asio::co_spawn(ssl_socket.get_executor(), co_connect(host, service), token);

@@ -6,7 +6,7 @@ project(h2pp
     LANGUAGES CXX
 )
 
-option(USE_TEST "Enable/Disable tests building" true)
+option(USE_TEST "Enable/Disable tests building" ON)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_STANDARD 20)
@@ -23,6 +23,13 @@ else()
 
   set(CMAKE_CXX_FLAGS_RELEASE "-O2 -flto=auto")
   set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-flto=auto")
+endif()
+
+option(USE_ASAN "Enable build with address sanitizer" OFF)
+if(USE_ASAN)
+    message(STATUS "Enabling ASAN build")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 endif()
 
 message(STATUS "System: " ${CMAKE_SYSTEM_NAME} " " ${CMAKE_SYSTEM_VERSION})

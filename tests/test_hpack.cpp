@@ -1,10 +1,39 @@
 #define BOOST_TEST_MODULE HPack
 #include <boost/test/unit_test.hpp>
 
+#include <algorithm>
+#include <tuple>
+
 #include <hpack/bitstream.h>
 #include <hpack/constants.h>
 #include <hpack/decoder.h>
 #include <hpack/encoder.h>
+
+namespace rfc7541 {
+bool operator==(const std::span<const uint8_t> &lhs, const std::span<const uint8_t> &rhs) noexcept {
+  return lhs.size() == rhs.size() && std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+
+bool operator!=(const std::span<const uint8_t> &lhs, const std::span<const uint8_t> &rhs) noexcept {
+  return !(lhs == rhs);
+}
+
+bool operator==(const header_field &lhs, const header_field &rhs) noexcept {
+  auto lname = lhs.name();
+  auto lvalue = lhs.value();
+  auto rname = rhs.name();
+  auto rvalue = rhs.value();
+  return lname == rname && lvalue == rvalue;
+}
+
+bool operator!=(const header_field &lhs, const header_field &rhs) noexcept { return !(lhs == rhs); }
+
+std::ostream &operator<<(std::ostream &os, const header_field &hf) {
+  os << hf.name_view();
+  return os;
+}
+
+} // namespace rfc7541
 
 BOOST_AUTO_TEST_SUITE(Decoder_Encoder)
 
@@ -13,39 +42,67 @@ struct TestData {
   std::vector<uint8_t> encoded_data;
 };
 
+constinit auto padding_size = 6;
 std::vector<TestData> encoded_with_huffman_data = {
-    {// Request 1
-     {{":method", "GET"}, {":scheme", "http"}, {":path", "/"}, {":authority", "www.example.com"}},
-     {0x82,                                     // command::INDEX {":method", "GET"}
-      0x86,                                     // command::INDEX {":scheme", "http"},
-      0x84,                                     // command::INDEX {":path", "/"}
-      0x41,                                     // command::LITERAL_INCREMENTAL_INDEX i=1 ":authority"
-                                                //
-      0x8c,                                     // huffman encoded len = 12
-                                                // "www.example.com"
-      0xf1, 0xe3, 0xc2, 0xe5, 0xf2, 0x3a, 0x6b, //
-      0xa0, 0xab, 0x90, 0xf4, 0xff}},
-    {// Request 2
-     {{":method", "GET"},
-      {":scheme", "http"},
-      {":path", "/"},
-      {":authority", "www.example.com"},
-      {"cache-control", "no-cache"}},
-     {0x82, 0x86, 0x84, 0xbe, 0x58, 0x86, 0xa8, 0xeb, 0x10, 0x64, 0x9c, 0xbf}},
-    {// Request 3
-     {{":method", "GET"},
-      {":scheme", "https"},
-      {":path", "/index.html"},
-      {":authority", "www.example.com"},
-      {"custom-key", "custom-value"}},
-     {0x82, 0x87, 0x85, 0xbf, 0x40, 0x88, 0x25, 0xa8, 0x49, 0xe9, 0x5b, 0xa9,
-      0x7d, 0x7f, 0x89, 0x25, 0xa8, 0x49, 0xe9, 0x5b, 0xb8, 0xe8, 0xb4, 0xbf}},
+    // 6 zero bytes are a prefix since  decoder reads a several bytes before by performance reason
+    // clang-format off
+    {
+      // Request 1
+      {
+         {":method", "GET"},
+         {":scheme", "http"},
+         {":path", "/"},
+         {":authority", "www.example.com"}
+      },
+      {
+         0, 0, 0, 0, 0, 0, // 6bytes padding padding
+         0x82,             // command::INDEX {":method", "GET"}
+         0x86,             // command::INDEX {":scheme", "http"},
+         0x84,             // command::INDEX {":path", "/"}
+         0x41,             // command::LITERAL_INCREMENTAL_INDEX i=1 ":authority"
+         0x8c,             // huffman encoded len = 12
+         0xf1, 0xe3, 0xc2, // Encoded string "www.example.com"
+         0xe5, 0xf2, 0x3a,
+         0x6b, 0xa0, 0xab,
+         0x90, 0xf4, 0xff
+      }
+    },
+    {
+      // Request 2
+      {
+        {":method", "GET"},
+        {":scheme", "http"},
+        {":path", "/"},
+        {":authority", "www.example.com"},
+        {"cache-control", "no-cache"}
+      },
+      {
+        0, 0, 0, 0, 0, 0, // 6bytes padding padding
+        0x82, // command::INDEX {":method", "GET"}
+        0x86, // command::INDEX {":scheme", "http"},
+        0x84, // command::INDEX {":path", "/"}
+        0xbe, 0x58, 0x86, 0xa8, 0xeb, 0x10, 0x64, 0x9c, 0xbf}
+      },
+    {
+      // Request 3
+      {
+        {":method", "GET"},
+        {":scheme", "https"},
+        {":path", "/index.html"},
+        {":authority", "www.example.com"},
+        {"custom-key", "custom-value"}
+      },
+      {
+        0, 0, 0, 0, 0, 0, // 6bytes padding padding
+        0x82, // command::INDEX {":method", "GET"}
+        0x87, // command::INDEX {":scheme", "https"},
+        0x85, // command::INDEX {":path", "/index.html"}
+        0xbf, 0x40, 0x88, 0x25, 0xa8, 0x49,
+        0xe9, 0x5b, 0xa9, 0x7d, 0x7f, 0x89, 0x25, 0xa8, 0x49, 0xe9, 0x5b, 0xb8, 0xe8, 0xb4, 0xbf
+      }
+    },
 };
-
-// auto operator!=(const header_field &lhs, const header_field &rhs) {
-//   return !(std::tie(lhs.name().size(), lhs.value()) ==
-//            std::tie(rhs.name().size(), rhs.value()));
-// }
+// clang-format on
 
 BOOST_AUTO_TEST_CASE(EncodeDecode_with_huffman) {
   rfc7541::decoder decoder;
@@ -53,20 +110,22 @@ BOOST_AUTO_TEST_CASE(EncodeDecode_with_huffman) {
 
   for (const auto &test_request : encoded_with_huffman_data) {
     // Decoding
-    auto decoded_headers = decoder.decode(test_request.encoded_data);
-    BOOST_CHECK_EQUAL(decoded_headers.size(), test_request.fields.size());
-    //   BOOST_CHECK_EQUAL_COLLECTIONS(
-    //       decoded_headers.begin(), decoded_headers.end(),
-    //       test_request.fields.begin(), test_request.fields.end());
+    const auto encoded_data = std::span<const uint8_t>(test_request.encoded_data).subspan(padding_size);
+    const auto decoded_headers = decoder.decode(encoded_data);
 
-    auto [encoded_buf, encoded_fields_count] = encoder.encode(test_request.fields, 4096);
+    BOOST_CHECK_EQUAL(decoded_headers.size(), test_request.fields.size());
+    // BOOST_CHECK(std::equal(decoded_headers.cbegin(), decoded_headers.cend(), test_request.fields.cbegin(),
+    //                        test_request.fields.cend()));
+    BOOST_CHECK_EQUAL_COLLECTIONS(decoded_headers.begin(), decoded_headers.end(), test_request.fields.begin(),
+                                  test_request.fields.end());
+
+    // Encoding
+    const auto [encoded_buf, encoded_fields_count] = encoder.encode(test_request.fields, 4096);
     BOOST_CHECK_EQUAL(encoded_fields_count, test_request.fields.size());
     BOOST_CHECK(!encoded_buf.empty());
-    auto data = encoded_buf.front().data_view();
-    BOOST_CHECK_EQUAL(data.size(), test_request.encoded_data.size());
-
-    BOOST_CHECK_EQUAL_COLLECTIONS(data.begin(), data.end(), test_request.encoded_data.begin(),
-                                  test_request.encoded_data.end());
+    const auto encoded_span = encoded_buf.front().data_view();
+    BOOST_CHECK_EQUAL(encoded_span.size(), encoded_data.size());
+    BOOST_CHECK_EQUAL_COLLECTIONS(encoded_span.begin(), encoded_span.end(), encoded_data.begin(), encoded_data.end());
   }
 }
 
@@ -109,6 +168,7 @@ BOOST_AUTO_TEST_CASE(EncodeDecode_with_huffman) {
 
 //   auto header = decoder.decode(buffer.front().data_view());
 // }
+
 // BOOST_AUTO_TEST_CASE(Decoding_without_huffman) {
 //   // C.3
 //   // All request without huffman coding

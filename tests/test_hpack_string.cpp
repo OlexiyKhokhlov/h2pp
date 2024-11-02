@@ -40,13 +40,17 @@ BOOST_AUTO_TEST_CASE(Decode_inplaced) {
 }
 
 BOOST_AUTO_TEST_CASE(Decode_Huffman_encoded) {
-  const std::vector<uint8_t> datastr = {0x8c, 0xf1, 0xe3, 0xc2, 0xe5, 0xf2, 0x3a, 0x6b, 0xa0, 0xab, 0x90, 0xf4, 0xff};
+  // 6 zero bytes are a prefix since  decoder reads a several bytes before by performance reason
+  constexpr auto empty_prefix_size = 6;
+  const std::vector<uint8_t> datastr = {0,    0,    0,    0,    0,    0, // 6 bytes prefix
+                                        0x8c, 0xf1, 0xe3, 0xc2, 0xe5, 0xf2, 0x3a, 0x6b, 0xa0, 0xab, 0x90, 0xf4, 0xff};
   const auto expected_str = "www.example.com";
   const std::vector<uint8_t> expected(expected_str, expected_str + strlen(expected_str));
 
-  const auto decoded_str = rfc7541::string::decode(datastr);
+  auto encoded_data = std::span<const uint8_t>(datastr).subspan(empty_prefix_size);
+  const auto decoded_str = rfc7541::string::decode(encoded_data);
 
-  BOOST_CHECK_EQUAL(decoded_str.used_bytes, datastr.size());
+  BOOST_CHECK_EQUAL(decoded_str.used_bytes, encoded_data.size());
   BOOST_TEST(decoded_str.value == expected);
 }
 

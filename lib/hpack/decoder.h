@@ -15,8 +15,8 @@ public:
   decoder() = default;
   decoder(const decoder &) = delete;
   decoder &operator=(const decoder &) = delete;
-  decoder(decoder &&) = default;
-  decoder &operator=(decoder &&) = default;
+  decoder(decoder &&) = delete;
+  decoder &operator=(decoder &&) = delete;
   ~decoder();
 
   header decode(std::span<const uint8_t> encoded_data);

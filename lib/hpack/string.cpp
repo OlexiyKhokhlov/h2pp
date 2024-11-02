@@ -47,7 +47,7 @@ std::vector<uint8_t> read_huffman_str(std::span<const uint8_t> src) {
     if (index.value() == rfc7541::huffman::EOS) {
       return result;
     }
-    result.push_back(index.value());
+    result.push_back(uint8_t(index.value()));
     stream.commit_bits(code_len);
   }
   result.shrink_to_fit();

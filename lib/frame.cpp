@@ -111,7 +111,7 @@ void frame_analyzer::check_ping_frame() const {
   if (frame.stream_id != 0) {
     throw boost::system::system_error(error_code::PROTOCOL_ERROR, "Invalid stream id");
   }
-  if (frame.payload_size() != 64) {
+  if (frame.payload_size() > 64) {
     throw boost::system::system_error(error_code::FRAME_SIZE_ERROR, "Invalid payload size");
   }
 }

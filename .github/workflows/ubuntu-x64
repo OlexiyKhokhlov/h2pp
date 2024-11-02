@@ -1,0 +1,62 @@
+name: Build and Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: "Who to greet"
+        default: "World"
+
+# on:
+#   push:
+#     branches: [ $default-branch ]
+#   pull_request:
+#     branches: [ $default-branch ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  Ubuntu-x64:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install boost
+      uses: MarkusJx/install-boost@v2.4.5
+      id: install-boost
+      with:
+        platform_version: 22.04
+        boost_version: 1.84.0
+        toolset: gcc
+
+    - name: Configure CMake  Release
+      run: |
+        cmake -B ${{github.workspace}}/build-release \
+        -DBoost_ROOT=${{steps.install-boost.outputs.BOOST_ROOT}} \
+        -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build-Release
+      run: cmake --build ${{github.workspace}}/build-release --config ${{env.BUILD_TYPE}}
+
+    - name: Test-Release
+      working-directory: ${{github.workspace}}/build-release
+      run: ctest -C ${{env.BUILD_TYPE}}
+      
+    - name: Configure CMake ASAN
+      run: |
+        cmake -B ${{github.workspace}}/build-asan \
+        -DBoost_ROOT=${{steps.install-boost.outputs.BOOST_ROOT}} \
+        -DUSE_ASAN=ON \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+    - name: Build ASAN
+      run: cmake --build ${{github.workspace}}/build-asan --config RelWithDebInfo
+
+    - name: Test ASAN
+      working-directory: ${{github.workspace}}/build-asan
+      run: ctest -C RelWithDebInfow

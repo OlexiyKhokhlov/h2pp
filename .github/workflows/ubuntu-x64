@@ -1,4 +1,4 @@
-name: Build and Test
+name: Ubuntu-x64
 
 on:
   workflow_dispatch:
@@ -6,10 +6,6 @@ on:
       name:
         description: "Ubuntu64"
         default: "World"
-  push:
-    branches: [ $default-branch ]
-  pull_request:
-    branches: [ $default-branch ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)

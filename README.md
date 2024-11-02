@@ -1,5 +1,6 @@
 [![Support Ukraine](https://img.shields.io/badge/Support-Ukraine-FFD500?style=flat&labelColor=005BBB)](https://opensource.facebook.com/support-ukraine)
-[![Build and Test](https://github.com/OlexiyKhokhlov/h2pp/actions/workflows/build.yml/badge.svg)](https://github.com/OlexiyKhokhlov/h2pp/actions/workflows/build.yml)
+[![Ubuntu-x64](https://github.com/OlexiyKhokhlov/h2pp/actions/workflows/ubuntu-x64.yml/badge.svg)](https://github.com/OlexiyKhokhlov/h2pp/actions/workflows/ubuntu-x64.yml)
+[![Windows-x64](https://github.com/OlexiyKhokhlov/h2pp/actions/workflows/windows-x64.yml/badge.svg)](https://github.com/OlexiyKhokhlov/h2pp/actions/workflows/windows-x64.yml)
 
 # h2pp - modern C++ HTTP/2 client library
 
